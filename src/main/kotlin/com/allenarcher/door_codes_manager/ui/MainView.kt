@@ -26,8 +26,10 @@ import com.vaadin.flow.component.tabs.Tabs
 import com.vaadin.flow.component.textfield.IntegerField
 import com.vaadin.flow.component.textfield.TextField
 import com.vaadin.flow.router.Route
+import jakarta.annotation.security.PermitAll
 
 @Route("")
+@PermitAll
 class MainView(
     private val doorCodeRepository: DoorCodeRepository,
     private val deviceRepository: DeviceRepository,
