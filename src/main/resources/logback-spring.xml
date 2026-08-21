@@ -1,0 +1,36 @@
+<configuration>
+    <property name="LOG_PATH" value="${LOG_PATH:-./logs/door-codes-manager.log}"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Environment/startup issues (Spring, Hibernate, Tomcat, etc.) go to stdout for the container runtime to capture. -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- Startup banner (SpringApplication.run) logs to the class itself; keep it on stdout with the rest of the environment/startup logs. -->
+    <logger name="com.allenarcher.door_codes_manager.DoorCodesManagerApplicationKt" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- Operational issues from our own code go to the log file only. -->
+    <logger name="com.allenarcher.door_codes_manager" level="INFO" additivity="false">
+        <appender-ref ref="FILE"/>
+    </logger>
+</configuration>

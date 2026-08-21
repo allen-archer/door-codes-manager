@@ -1,0 +1,1 @@
+docker run --rm -p 8080:8080 -v "$(pwd)/data":/data -v "$(pwd)/config":/config -v "$(pwd)/logs":/logs -e SPRING_PROFILES_ACTIVE=test ghcr.io/allen-archer/door-codes-manager

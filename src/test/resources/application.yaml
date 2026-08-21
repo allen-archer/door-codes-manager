@@ -1,0 +1,32 @@
+spring:
+  config:
+    import: ""
+  application:
+    name: door-codes-manager
+  jackson:
+    default-property-inclusion: non_null
+  datasource:
+    url: "jdbc:sqlite::memory:"
+    driver-class-name: org.sqlite.JDBC
+    hikari:
+      maximum-pool-size: 1
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+vaadin:
+  launch-browser: false
+server:
+  port: 0
+automation:
+  mqtt:
+    address: ""
+zigbee2Mqtt:
+  mqtt:
+    address: ""
+security:
+  rememberMeKey: test
+  users:
+    - name: test
+      password: test
+code-start-and-expiration-check-timer: 1h

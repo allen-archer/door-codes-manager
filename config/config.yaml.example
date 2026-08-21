@@ -1,0 +1,23 @@
+zigbee2Mqtt:
+  mqtt:
+    address: tcp://127.0.0.1
+    port: 1883
+    topic: zigbee2mqtt
+    timeout: 15
+    username: someuser
+    password: somepassword
+automation:
+  mqtt:
+    address: tcp://127.0.0.1
+    port: 1883
+    topic: automated_door_codes
+    username: someuser
+    password: somepassword
+security:
+  rememberMeKey: change-me
+  users:
+    - name: alice
+      password: change-me
+    - name: bob
+      password: change-me
+code-start-and-expiration-check-timer: 5m
