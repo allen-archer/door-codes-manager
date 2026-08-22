@@ -1,8 +1,28 @@
 # door-codes-manager
 
-Web app for managing door codes on a Zigbee2MQTT-connected smart lock. Add,
-remove, and automatically rotate codes; changes are pushed to the lock over
-MQTT and only saved once the lock confirms them.
+Web app for managing door codes on a Zigbee2MQTT-connected smart lock. Add, remove, and automatically rotate codes; changes are pushed to the lock over MQTT and then saved to a SQLite database.
+
+## How it works
+
+Add a device, giving it the slot range the lock supports:
+
+![Add device](docs/add_device.png)
+
+Automated slot start: this is the slot where automated codes start, if using that feature. It's a way to reserve some number of beginning slots for manual codes. If you don't want to use the automated codes, you can leave this blank.
+
+Devices show up in their own tab, click a row to edit or delete a device:
+
+![Devices](docs/devices.png)
+
+Add a code to a slot on a device:
+
+![Add code](docs/add_code.png)
+
+A door code can have a start date/time and an expiration date/time. On a timer (`code-start-and-expiration-check-timer` in config, default 5m), the app checks all codes: when a code's start time arrives it's pushed to the lock, and when a code's expiration time arrives it's removed from the lock and deleted. Codes without a start/expiration are permanent until manually deleted.
+
+Codes show up in the main table, where you can click one to edit or delete it. The refresh button reconciles the database against what's actually programmed on a device, over a chosen slot range: it adds codes that exist on the lock but not the database, updates ones whose pin changed on the lock, and removes database entries for slots that are empty or disabled on the lock — useful for recovering state if the database and lock have drifted apart:
+
+![Door codes](docs/door_codes.png)
 
 ## Requirements
 
@@ -26,9 +46,9 @@ zigbee2Mqtt:
     timeout: 15
     username: someuser
     password: somepassword
-automation:
+automation:                   # this section is optional, it can be deleted if not used
   mqtt:
-    address: tcp://127.0.0.1
+    address: tcp://127.0.0.1  # your MQTT broker for automated codes, can be the same as your zigbee2Mqtt broker
     port: 1883
     topic: automated_door_codes
     username: someuser
@@ -93,3 +113,7 @@ scripts/run_tests.sh
 - Hibernate/JPA on SQLite
 - Eclipse Paho MQTT client
 - Gradle
+
+## License
+
+[GPL-3.0](LICENSE)
