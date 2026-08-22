@@ -21,6 +21,12 @@ class StateManager(
     val logger: Logger = LogManager.getLogger()!!
 
     fun addDoorCode(doorCode: DoorCode): Boolean {
+        doorCode.expirationDate?.let {
+            if (it < LocalDateTime.now()) {
+                logger.warn("Attempting to add an expired code: $doorCode")
+                return false
+            }
+        }
         val response = z2MDeviceManager.setCode(doorCode.device.name, doorCode.slot, doorCode.code)
         if (response != null) {
             doorCodeRepository.save(doorCode)

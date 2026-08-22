@@ -17,6 +17,7 @@ import com.vaadin.flow.component.html.Paragraph
 import com.vaadin.flow.component.icon.Icon
 import com.vaadin.flow.component.icon.VaadinIcon
 import com.vaadin.flow.component.notification.Notification
+import com.vaadin.flow.component.orderedlayout.FlexComponent
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
 import com.vaadin.flow.component.page.ColorScheme
@@ -45,13 +46,17 @@ class MainView(
     private val devicesTab = Tab("Devices")
 
     init {
-        add(HorizontalLayout(H1("#️⃣ Door Codes Manager"), themeToggle))
+        width = "100%"
+        val header = HorizontalLayout(H1("#️⃣ Door Codes Manager"), themeToggle)
+        header.width = "100%"
+        header.style.set("flex-wrap", "wrap")
+        add(header)
         val doorCodesActions = HorizontalLayout(
-            Button("Add code") { openCodeDialog(null) },
-            Button("Sync from devices") { openSyncDialog() },
+            Button(Icon(VaadinIcon.PLUS)) { openCodeDialog(null) }.apply { setTooltipText("Add code") },
+            Button(Icon(VaadinIcon.REFRESH)) { openSyncDialog() }.apply { setTooltipText("Read codes from a device") },
         )
         val devicesActions = HorizontalLayout(
-            Button("Add device") { openDeviceDialog() },
+            Button(Icon(VaadinIcon.PLUS)) { openDeviceDialog() }.apply { setTooltipText("Add device") },
         )
         devicesActions.isVisible = false
         val tabs = Tabs(doorCodesTab, devicesTab)
@@ -61,7 +66,11 @@ class MainView(
             doorCodesActions.isVisible = tabs.selectedTab == doorCodesTab
             devicesActions.isVisible = tabs.selectedTab == devicesTab
         }
-        add(HorizontalLayout(tabs, doorCodesActions, devicesActions))
+        val toolbar = HorizontalLayout(tabs, doorCodesActions, devicesActions)
+        toolbar.width = "100%"
+        toolbar.style.set("flex-wrap", "wrap")
+        toolbar.alignItems = FlexComponent.Alignment.CENTER
+        add(toolbar)
         configureDoorCodesGrid()
         configureDeviceGrid()
         add(doorCodesGrid, devicesGrid)
@@ -132,17 +141,18 @@ class MainView(
 
     private fun addCloseButton(dialog: Dialog) {
         dialog.header.add(Button(Icon(VaadinIcon.CLOSE_SMALL)) { dialog.close() })
+        dialog.width = "min(90vw, 600px)"
     }
 
     private fun openSyncDialog() {
-        val dialog = Dialog("Sync codes from device")
-        val heading = Paragraph("Gets the codes currently on the device from the start slot to the end slot")
+        val dialog = Dialog("Read codes from device")
+        val heading = Paragraph("Reads the codes currently programmed on the device, from the start slot to the end slot, and saves them to the database")
         val start = IntegerField("Start slot")
         val end = IntegerField("End slot")
         val device = ComboBox<Device>("Device")
         val progressBar = ProgressBar()
         progressBar.isVisible = false
-        val sync = Button("Sync")
+        val sync = Button("Read and save")
         sync.addClickListener {
             sync.isEnabled = false
             progressBar.value = 0.0
@@ -160,8 +170,14 @@ class MainView(
         }
         updateStartAndEnd()
         device.addValueChangeListener { updateStartAndEnd() }
+        val buttons = HorizontalLayout(sync)
+        buttons.width = "100%"
+        buttons.justifyContentMode = FlexComponent.JustifyContentMode.END
+        buttons.style.set("margin-top", "1em")
         addCloseButton(dialog)
-        dialog.add(heading, FormLayout(device, start, end), sync, progressBar)
+        val form = FormLayout(device, start, end)
+        form.setColspan(device, 2)
+        dialog.add(heading, form, buttons, progressBar)
         dialog.open()
     }
 
@@ -206,10 +222,12 @@ class MainView(
         val delete = Button("Delete") {
             deleteDevice(existing!!)
         }
-        if (existing == null) {
-            delete.isVisible = false
-        }
-        dialog.add(FormLayout(name, friendlyName, slotMin, slotMax, automatedSlotStart), HorizontalLayout(save, delete))
+        delete.isVisible = existing != null
+        val buttons = HorizontalLayout(save, delete)
+        buttons.width = "100%"
+        buttons.justifyContentMode = FlexComponent.JustifyContentMode.END
+        buttons.style.set("margin-top", "1em")
+        dialog.add(FormLayout(name, friendlyName, slotMin, slotMax, automatedSlotStart), buttons)
         dialog.open()
     }
 
@@ -288,13 +306,15 @@ class MainView(
         val delete = Button("Delete") {
             deleteCode(existing!!)
         }
-        if (existing == null) {
-            delete.isVisible = false
-        }
-        dialog.add(
-            FormLayout(device, slot, code, description, startDate, expirationDate),
-            HorizontalLayout(save, delete)
-        )
+        delete.isVisible = existing != null
+        val buttons = HorizontalLayout(save, delete)
+        buttons.width = "100%"
+        buttons.justifyContentMode = FlexComponent.JustifyContentMode.END
+        buttons.style.set("margin-top", "1em")
+        val form = FormLayout(device, slot, code, description, startDate, expirationDate)
+        form.setColspan(device, 2)
+        form.setColspan(description, 2)
+        dialog.add(form, buttons)
         dialog.open()
     }
 }

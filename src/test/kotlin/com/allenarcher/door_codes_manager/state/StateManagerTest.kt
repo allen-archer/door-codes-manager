@@ -17,6 +17,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -56,6 +57,51 @@ class StateManagerTest {
 
         assertFalse(result)
         verify(doorCodeRepository, never()).save(any())
+    }
+
+    @Test
+    fun `addDoorCode rejects already expired code`() {
+        val doorCode = DoorCode(null, device, 1, "1234", null, null, LocalDateTime.now().minusMinutes(1))
+
+        val result = stateManager.addDoorCode(doorCode)
+
+        assertFalse(result)
+        verify(z2MDeviceManager, never()).setCode(any(), any(), any(), any())
+        verify(doorCodeRepository, never()).save(any())
+    }
+
+    @Test
+    fun `addDoorCode saves when expiration is in the future`() {
+        val doorCode = DoorCode(null, device, 1, "1234", null, null, LocalDateTime.now().plusMinutes(1))
+        whenever(z2MDeviceManager.setCode("front-door", 1, "1234")).thenReturn(Z2MResponse())
+
+        val result = stateManager.addDoorCode(doorCode)
+
+        assertTrue(result)
+        verify(doorCodeRepository).save(doorCode)
+    }
+
+    @Test
+    fun `addDoorCode saves when expiration date is not set`() {
+        val doorCode = DoorCode(null, device, 1, "1234", null, null, null)
+        whenever(z2MDeviceManager.setCode("front-door", 1, "1234")).thenReturn(Z2MResponse())
+
+        val result = stateManager.addDoorCode(doorCode)
+
+        assertTrue(result)
+        verify(doorCodeRepository).save(doorCode)
+    }
+
+    @Test
+    fun `updateDoorCode does not call setCode when code is unchanged`() {
+        val existingDoorCode = DoorCode(2, device, 1, "1234", null, null, null)
+        val newDoorCode = DoorCode(2, device, 1, "1234", "updated note", null, null)
+
+        val result = stateManager.updateDoorCode(newDoorCode, existingDoorCode)
+
+        assertTrue(result)
+        verify(z2MDeviceManager, never()).setCode(any(), any(), any(), any())
+        verify(doorCodeRepository).save(newDoorCode)
     }
 
     @Test
