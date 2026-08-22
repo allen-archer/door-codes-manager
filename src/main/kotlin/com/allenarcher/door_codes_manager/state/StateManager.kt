@@ -95,27 +95,47 @@ class StateManager(
                     val pinCode = user.code
                     if (status == "available") {
                         if (doorCodeInDatabase != null) {
-                            updates = true
-                            onMessage("Slot $slot on device $deviceName is available on the device, but set in the database. Deleting from the database.")
-                            doorCodeRepository.delete(doorCodeInDatabase)
+                            if (doorCodeInDatabase.startDate != null) {
+                                val message =
+                                    "Slot $slot on device $deviceName is available on the device, but set in the database with a startDate, ignoring."
+                                logger.info(message)
+                                onMessage(message)
+                            } else {
+                                updates = true
+                                val message =
+                                    "Slot $slot on device $deviceName is available on the device, but set in the database. Deleting from the database."
+                                logger.info(message)
+                                onMessage(message)
+                                doorCodeRepository.delete(doorCodeInDatabase)
+                            }
                         }
                     } else if (status == "disabled") {
                         if (doorCodeInDatabase != null) {
                             updates = true
-                            onMessage("Slot $slot on device $deviceName is disabled on the device, but set in the database. Deleting from the device and the database.")
+                            val message =
+                                "Slot $slot on device $deviceName is disabled on the device, but set in the database. Deleting from the device and the database."
+                            logger.info(message)
+                            onMessage(message)
                             doorCodeRepository.delete(doorCodeInDatabase)
                         } else {
                             updates = true
-                            onMessage("Slot $slot on device $deviceName is disabled on the device. Deleting from the device.")
+                            val message =
+                                "Slot $slot on device $deviceName is disabled on the device. Deleting from the device."
+                            logger.info(message)
+                            onMessage(message)
                         }
                         val response = z2MDeviceManager.deleteCode(deviceName, slot)
                         if (response == null) {
-                            onMessage("Error deleting $slot on device $deviceName")
+                            val message = "Error deleting $slot on device $deviceName"
+                            logger.info(message)
+                            onMessage(message)
                         }
                     } else if (status == "enabled") {
                         if (doorCodeInDatabase == null) {
                             updates = true
-                            onMessage("Adding slot $slot on device $deviceName.")
+                            val message = "Adding slot $slot on device $deviceName."
+                            logger.info(message)
+                            onMessage(message)
                             doorCodeRepository.save(
                                 DoorCode(
                                     null,
@@ -129,10 +149,16 @@ class StateManager(
                             )
                         } else if (pinCode!! == doorCodeInDatabase.code) {
                             updates = true
-                            onMessage("Slot $slot on device $deviceName exists on the device and database and they have the same pin $pinCode")
+                            val message =
+                                "Slot $slot on device $deviceName exists on the device and database and they have the same pin $pinCode"
+                            logger.info(message)
+                            onMessage(message)
                         } else {
                             updates = true
-                            onMessage("Slot $slot on device $deviceName exists on the device and database but they have different pin codes. Updating to what was on the device.")
+                            val message =
+                                "Slot $slot on device $deviceName exists on the device and database but they have different pin codes. Updating to what was on the device."
+                            logger.info(message)
+                            onMessage(message)
                             doorCodeInDatabase.code = pinCode
                             doorCodeRepository.save(doorCodeInDatabase)
                         }

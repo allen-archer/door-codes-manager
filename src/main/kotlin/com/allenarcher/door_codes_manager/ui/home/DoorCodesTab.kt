@@ -10,6 +10,9 @@ import com.vaadin.flow.component.icon.Icon
 import com.vaadin.flow.component.icon.VaadinIcon
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout
 import com.vaadin.flow.component.orderedlayout.VerticalLayout
+import java.time.format.DateTimeFormatter
+
+private val DATE_FORMAT = DateTimeFormatter.ofPattern("M/d/yy H:mm")
 
 class DoorCodesTab(
     private val doorCodeRepository: DoorCodeRepository,
@@ -24,12 +27,12 @@ class DoorCodesTab(
 
     init {
         isPadding = false
-        grid.addColumn { it.device.name }.setHeader("Device")
-        grid.addColumn { it.slot }.setHeader("Slot")
-        grid.addColumn { it.code }.setHeader("Code")
-        grid.addColumn { it.description ?: "" }.setHeader("Description")
-        grid.addColumn { it.startDate?.toString() ?: "" }.setHeader("Starts")
-        grid.addColumn { it.expirationDate?.toString() ?: "" }.setHeader("Expires")
+        grid.addColumn { it.description ?: "" }.setHeader("Description").setAutoWidth(true)
+        grid.addColumn { it.code }.setHeader("Code").setAutoWidth(true)
+        grid.addColumn { it.slot }.setHeader("Slot").setAutoWidth(true)
+        grid.addColumn { it.device.name }.setHeader("Device").setAutoWidth(true)
+        grid.addColumn { it.startDate?.format(DATE_FORMAT) ?: "" }.setHeader("Starts").setAutoWidth(true)
+        grid.addColumn { it.expirationDate?.format(DATE_FORMAT) ?: "" }.setHeader("Expires").setAutoWidth(true)
         grid.addItemClickListener { openCodeDialog(it.item) }
         add(grid)
         refresh()

@@ -129,6 +129,19 @@ class StateManagerTest {
     }
 
     @Test
+    fun `syncDoorCodes does not clear database entry for slot that is available on device but has a startDate`() {
+        val existing = DoorCode(3, device, 2, "5555", null, LocalDateTime.now(), null)
+        whenever(doorCodeRepository.findByDevice_NameAndSlot("front-door", 2)).thenReturn(existing)
+        whenever(z2MDeviceManager.getCode("front-door", 2))
+            .thenReturn(Z2MResponse(users = mapOf("2" to Z2MUser(status = "available"))))
+
+        val updates = stateManager.syncDoorCodes(device, 2, 2)
+
+        assertFalse(updates)
+        verify(doorCodeRepository, never()).delete(existing)
+    }
+
+    @Test
     fun `syncDoorCodes adds database entry for slot enabled on device but missing locally`() {
         whenever(doorCodeRepository.findByDevice_NameAndSlot("front-door", 2)).thenReturn(null)
         whenever(z2MDeviceManager.getCode("front-door", 2))
