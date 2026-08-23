@@ -20,4 +20,16 @@ security:
       password: change-me
     - name: bob
       password: change-me
+  basicAuthEnabled: true
+  oauth2Enabled: true
+  oauth2Group: door-codes-manager
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          authelia:
+            client-id: door-codes-manager
+            client-secret: change-me
+            scope: openid,groups
 code-start-and-expiration-check-timer: 5m

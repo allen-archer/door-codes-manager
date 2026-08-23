@@ -54,14 +54,31 @@ automation:                   # this section is optional, it can be deleted if n
     username: someuser
     password: somepassword
 security:
-  rememberMeKey: change-me     # any random string
-  users:
+  rememberMeKey: change-me     # any random string, optional
+  users:                       # only used if basicAuthEnabled is true
     - name: alice
       password: change-me      # plaintext here; hashed at startup
     - name: bob
       password: change-me
+  basicAuthEnabled: true       # form login + HTTP basic auth using the users above
+  oauth2Enabled: true          # OAuth2/OIDC login (e.g. Authelia), see below
+  oauth2Group: door-codes-manager # OIDC group whose members get admin access
+spring:                        # only needed if oauth2Enabled is true
+  security:
+    oauth2:
+      client:
+        provider:
+          authelia:
+            issuer-uri: https://your-oidc-provider
+        registration:
+          authelia:
+            client-id: door-codes-manager
+            client-secret: change-me
+            scope: openid,groups
 code-start-and-expiration-check-timer: 5m # scheduled timer to check start date and expiration date of door codes
 ```
+
+`basicAuthEnabled` and `oauth2Enabled` can each be toggled independently. If both are `false`, the app requires no login at all and logs a `WARN` on startup (don't do this).
 
 `config.yaml` is gitignored — never commit it.
 

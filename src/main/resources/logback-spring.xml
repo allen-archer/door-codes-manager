@@ -29,6 +29,10 @@
         <appender-ref ref="CONSOLE"/>
     </logger>
 
+    <logger name="com.allenarcher.door_codes_manager.config.SecurityConfig" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
     <!-- Operational issues from our own code go to the log file only. -->
     <logger name="com.allenarcher.door_codes_manager" level="INFO" additivity="false">
         <appender-ref ref="FILE"/>

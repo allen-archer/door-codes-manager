@@ -15,10 +15,10 @@ import com.vaadin.flow.component.page.ColorScheme
 import com.vaadin.flow.component.tabs.Tab
 import com.vaadin.flow.component.tabs.Tabs
 import com.vaadin.flow.router.Route
-import jakarta.annotation.security.PermitAll
+import com.vaadin.flow.server.auth.AnonymousAllowed
 
 @Route("")
-@PermitAll
+@AnonymousAllowed // Used when authentication is disabled
 class HomeView(
     doorCodeRepository: DoorCodeRepository,
     deviceRepository: DeviceRepository,
