@@ -1,6 +1,7 @@
 package com.allenarcher.door_codes_manager.database
 
 import jakarta.persistence.*
+import org.hibernate.annotations.CreationTimestamp
 import java.time.LocalDateTime
 
 @Entity
@@ -15,6 +16,8 @@ class DoorCode(
     var description: String? = null,
     var startDate: LocalDateTime?,
     var expirationDate: LocalDateTime?,
+    @CreationTimestamp
+    var createdAt: LocalDateTime? = null, // Useful for troubleshooting
 ) {
     override fun toString() =
         "DoorCode(device=${device.id}, slot=$slot, code=$code, description=$description, expirationDate=$expirationDate)"

@@ -51,31 +51,36 @@ class AutomatedDoorCodesManager(
                     logger.warn("Message received on automated topic, but data was empty.")
                     return@subscribe
                 }
-                loop@ for (entry in doorCodesToAutomateList.groupBy { it.device }) {
-                    val deviceName = entry.key ?: continue@loop
-                    val deviceRow = deviceRepository.findByName(deviceName) ?: continue@loop
-                    val allDoorCodes = doorCodeRepository.findAllByDevice_Name(deviceName)
-                    val usedCodes = allDoorCodes.map { it.code }.toSet()
-                    val usedSlots = allDoorCodes.map { it.slot }.toSet()
-                    val availableSlots = (deviceRow.automatedSlotStart..deviceRow.slotMax)
-                        .filter { !usedSlots.contains(it) }
-                        .toMutableList()
-                    entry.value.forEach {
-                        val code = it.code
-                        if (usedCodes.contains(code)) {
-                            continue@loop
-                        }
-                        if (availableSlots.isEmpty()) {
-                            logger.error("No available automated slots left for $deviceName.")
-                            continue@loop
-                        }
-                        val slot = availableSlots.removeFirst()
-                        val doorCode = DoorCode(null, deviceRow, slot, code!!, it.description, it.startDate,it.expirationDate)
-                        stateManager.addDoorCode(doorCode)
-                    }
-                }
+                automateDoorCodes(doorCodesToAutomateList)
             } catch (e: Exception) {
                 println("Failed to handle message on $topic: $e")
+            }
+        }
+    }
+
+    internal fun automateDoorCodes(doorCodesToAutomateList: List<AutomatedDoorCode>) {
+        loop@ for (entry in doorCodesToAutomateList.groupBy { it.device }) {
+            val deviceName = entry.key ?: continue@loop
+            val deviceRow = deviceRepository.findByName(deviceName) ?: continue@loop
+            val allDoorCodes = doorCodeRepository.findAllByDevice_Name(deviceName)
+            val usedCodes = allDoorCodes.map { it.code }.toSet()
+            val usedSlots = allDoorCodes.map { it.slot }.toSet()
+            val availableSlots = (deviceRow.automatedSlotStart..deviceRow.slotMax)
+                .filter { !usedSlots.contains(it) }
+                .toMutableList()
+            entry.value.forEach {
+                val code = it.code
+                if (usedCodes.contains(code)) {
+                    logger.info("Code $code already exists on device $deviceName, skipping.")
+                    return@forEach
+                }
+                if (availableSlots.isEmpty()) {
+                    logger.error("No available automated slots left for $deviceName.")
+                    continue@loop
+                }
+                val slot = availableSlots.removeFirst()
+                val doorCode = DoorCode(null, deviceRow, slot, code!!, it.description, it.startDate, it.expirationDate)
+                stateManager.addDoorCode(doorCode)
             }
         }
     }

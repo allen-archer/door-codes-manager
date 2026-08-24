@@ -93,6 +93,30 @@ class StateManagerTest {
     }
 
     @Test
+    fun `addDoorCode saves without setting on device when startDate is in the future`() {
+        val doorCode = DoorCode(null, device, 1, "1234", null, LocalDateTime.now().plusMinutes(1), null)
+
+        val result = stateManager.addDoorCode(doorCode)
+
+        assertTrue(result)
+        verify(doorCodeRepository).save(doorCode)
+        verify(z2MDeviceManager, never()).setCode(any(), any(), any(), any())
+    }
+
+    @Test
+    fun `addDoorCode sets on device when startDate has already passed`() {
+        val doorCode = DoorCode(null, device, 1, "1234", null, LocalDateTime.now().minusMinutes(1), null)
+        whenever(z2MDeviceManager.setCode("front-door", 1, "1234")).thenReturn(Z2MResponse())
+
+        val result = stateManager.addDoorCode(doorCode)
+
+        assertTrue(result)
+        assertEquals(null, doorCode.startDate)
+        verify(z2MDeviceManager).setCode("front-door", 1, "1234")
+        verify(doorCodeRepository).save(doorCode)
+    }
+
+    @Test
     fun `updateDoorCode does not call setCode when code is unchanged`() {
         val existingDoorCode = DoorCode(2, device, 1, "1234", null, null, null)
         val newDoorCode = DoorCode(2, device, 1, "1234", "updated note", null, null)

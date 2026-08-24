@@ -27,6 +27,16 @@ class StateManager(
                 return false
             }
         }
+        doorCode.startDate?.let {
+            if (it < LocalDateTime.now()) {
+                logger.warn("Adding a door code with an expired start date. Deleting the start date and adding the code as normal: $doorCode")
+                doorCode.startDate = null
+            } else {
+                logger.info("Saving door code with a start date in the future to the database: $doorCode")
+                doorCodeRepository.save(doorCode)
+                return true
+            }
+        }
         val response = z2MDeviceManager.setCode(doorCode.device.name, doorCode.slot, doorCode.code)
         if (response != null) {
             doorCodeRepository.save(doorCode)
