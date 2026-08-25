@@ -1,12 +1,13 @@
 package com.allenarcher.door_codes_manager.z2m
 
-import com.allenarcher.door_codes_manager.database.DeviceRepository
 import com.allenarcher.door_codes_manager.database.Device
+import com.allenarcher.door_codes_manager.database.DeviceRepository
+import com.allenarcher.door_codes_manager.mqtt.mqttConnectionOptions
+import com.allenarcher.door_codes_manager.mqtt.resubscribingCallback
 import jakarta.annotation.PostConstruct
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.eclipse.paho.client.mqttv3.MqttClient
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.springframework.beans.factory.annotation.Value
@@ -41,13 +42,11 @@ class Z2MDeviceManager(
             return
         }
         client = MqttClient("$address:$port", MqttClient.generateClientId(), MemoryPersistence())
-        client.connect(MqttConnectOptions().apply {
-            isAutomaticReconnect = true
-            if (user.isNotBlank()) {
-                userName = user
-                password = pass.toCharArray()
-            }
-        })
+        client.setCallback(resubscribingCallback(logger, "Zigbee2MQTT") { subscribe() })
+        client.connect(mqttConnectionOptions(user, pass))
+    }
+
+    private fun subscribe() {
         client.subscribe("$topic/#") { receivedTopic, message ->
             val friendlyName = receivedTopic.removePrefix("$topic/")
             val device = deviceRepository.findByFriendlyName(friendlyName) ?: return@subscribe

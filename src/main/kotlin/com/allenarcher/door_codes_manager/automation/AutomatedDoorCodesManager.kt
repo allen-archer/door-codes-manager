@@ -1,14 +1,15 @@
 package com.allenarcher.door_codes_manager.automation
 
 import com.allenarcher.door_codes_manager.database.DeviceRepository
-import com.allenarcher.door_codes_manager.database.DoorCodeRepository
 import com.allenarcher.door_codes_manager.database.DoorCode
+import com.allenarcher.door_codes_manager.database.DoorCodeRepository
+import com.allenarcher.door_codes_manager.mqtt.mqttConnectionOptions
+import com.allenarcher.door_codes_manager.mqtt.resubscribingCallback
 import com.allenarcher.door_codes_manager.state.StateManager
 import jakarta.annotation.PostConstruct
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.eclipse.paho.client.mqttv3.MqttClient
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -37,13 +38,11 @@ class AutomatedDoorCodesManager(
             return
         }
         client = MqttClient("$address:$port", MqttClient.generateClientId(), MemoryPersistence())
-        client.connect(MqttConnectOptions().apply {
-            isAutomaticReconnect = true
-            if (user.isNotBlank()) {
-                userName = user
-                password = pass.toCharArray()
-            }
-        })
+        client.setCallback(resubscribingCallback(logger, "Automated door codes") { subscribe() })
+        client.connect(mqttConnectionOptions(user, pass))
+    }
+
+    private fun subscribe() {
         client.subscribe(topic) { _, message ->
             try {
                 val doorCodesToAutomateList = objectMapper.readValue(message.payload, object : TypeReference<List<AutomatedDoorCode>>() {})
