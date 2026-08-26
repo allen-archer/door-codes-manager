@@ -49,7 +49,7 @@ class SecurityConfig(private val securityProperties: SecurityProperties) {
             if (groups.contains(securityProperties.oauth2Group)) {
                 authorities.add(SimpleGrantedAuthority("ROLE_ADMIN"))
             }
-            DefaultOidcUser(authorities, oidcUser.idToken, oidcUser.userInfo)
+            DefaultOidcUser(authorities, oidcUser.idToken, oidcUser.userInfo, "preferred_username")
         }
     }
 

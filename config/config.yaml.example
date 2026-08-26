@@ -31,5 +31,5 @@ spring:
           authelia:
             client-id: door-codes-manager
             client-secret: change-me
-            scope: openid,groups
+            scope: openid,groups,profile
 code-start-and-expiration-check-timer: 5m
