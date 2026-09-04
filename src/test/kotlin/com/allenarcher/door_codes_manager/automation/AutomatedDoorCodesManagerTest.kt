@@ -4,6 +4,7 @@ import com.allenarcher.door_codes_manager.database.Device
 import com.allenarcher.door_codes_manager.database.DeviceRepository
 import com.allenarcher.door_codes_manager.database.DoorCode
 import com.allenarcher.door_codes_manager.database.DoorCodeRepository
+import com.allenarcher.door_codes_manager.notifications.Ntfy
 import com.allenarcher.door_codes_manager.state.StateManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,6 +22,7 @@ class AutomatedDoorCodesManagerTest {
     private val stateManager: StateManager = mock()
     private val deviceRepository: DeviceRepository = mock()
     private val doorCodeRepository: DoorCodeRepository = mock()
+    private val ntfy: Ntfy = mock()
     private lateinit var manager: AutomatedDoorCodesManager
 
     private val device = Device(1, "front", "Front Door", 1, 5, 1)
@@ -32,6 +34,7 @@ class AutomatedDoorCodesManagerTest {
             stateManager = stateManager,
             deviceRepository = deviceRepository,
             doorCodeRepository = doorCodeRepository,
+            ntfy = ntfy,
             address = "",
             port = "",
             topic = "",

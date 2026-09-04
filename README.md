@@ -76,11 +76,22 @@ spring:                        # only needed if oauth2Enabled is true
             client-secret: change-me
             scope: openid,groups
 code-start-and-expiration-check-timer: 5m # scheduled timer to check start date and expiration date of door codes
+ntfy:                          # this section is optional, it can be deleted if not used
+  enabled: true
+  url: https://your-ntfy-url.com
+  topic: doorcodes
+  user: someuser               # basic auth, optional
+  password: somepassword
+  token: TOKEN                 # token auth, optional; used if user/password aren't set
 ```
 
 `basicAuthEnabled` and `oauth2Enabled` can each be toggled independently. If both are `false`, the app requires no login at all and logs a `WARN` on startup (don't do this).
 
 `config.yaml` is gitignored — never commit it.
+
+### Notifications
+
+If configured, the app sends [ntfy](https://ntfy.sh) push notifications for door code changes that happen without user interaction
 
 ## Running in a container
 
@@ -130,6 +141,7 @@ scripts/run_tests.sh
 - Hibernate/JPA on SQLite
 - Eclipse Paho MQTT client
 - Gradle
+- Ntfy
 
 ## License
 

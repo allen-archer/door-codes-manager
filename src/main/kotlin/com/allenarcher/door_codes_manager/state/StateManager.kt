@@ -4,21 +4,25 @@ import com.allenarcher.door_codes_manager.database.Device
 import com.allenarcher.door_codes_manager.database.DeviceRepository
 import com.allenarcher.door_codes_manager.database.DoorCodeRepository
 import com.allenarcher.door_codes_manager.database.DoorCode
+import com.allenarcher.door_codes_manager.notifications.Ntfy
 import com.allenarcher.door_codes_manager.z2m.Z2MDeviceManager
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Component
 class StateManager(
     private val z2MDeviceManager: Z2MDeviceManager,
     private val doorCodeRepository: DoorCodeRepository,
     private val deviceRepository: DeviceRepository,
+    private val ntfy: Ntfy
 ) {
 
-    val logger: Logger = LogManager.getLogger()!!
+    private val logger: Logger = LogManager.getLogger()!!
+    private val dateFormatter = DateTimeFormatter.ofPattern("M/d/yy H:mm")
 
     fun addDoorCode(doorCode: DoorCode): Boolean {
         doorCode.expirationDate?.let {
@@ -190,10 +194,21 @@ class StateManager(
         val now = LocalDateTime.now()
         doorCodeRepository.findAllByStartDateBefore(now).forEach {
             it.startDate = null
-            addDoorCode(it)
+            val added = addDoorCode(it)
+            if (added) {
+                val expirationMessage = if (it.expirationDate != null) ", expires at ${dateFormatter.format(it.expirationDate)}" else ""
+                ntfy.sendNotification("Door code added", "Door code added for ${it.description} on device ${it.device.name}$expirationMessage", "3", "white_check_mark")
+            } else {
+                ntfy.sendNotification("MQTT error", "Error setting code for ${it.description} on device ${it.device.name}", "4", "no_entry")
+            }
         }
         doorCodeRepository.findAllByExpirationDateBefore(now).forEach {
-            deleteDoorCode(it)
+            val deleted = deleteDoorCode(it)
+            if (deleted) {
+                ntfy.sendNotification("Door code deleted", "Door code deleted for ${it.description} on device ${it.device.name}", "3", "x")
+            } else {
+                ntfy.sendNotification("MQTT error", "Error deleting code for ${it.description} on device ${it.device.name}", "4", "no_entry")
+            }
         }
     }
 }

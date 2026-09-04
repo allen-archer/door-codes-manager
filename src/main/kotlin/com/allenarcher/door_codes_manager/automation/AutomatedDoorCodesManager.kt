@@ -5,6 +5,7 @@ import com.allenarcher.door_codes_manager.database.DoorCode
 import com.allenarcher.door_codes_manager.database.DoorCodeRepository
 import com.allenarcher.door_codes_manager.mqtt.mqttConnectionOptions
 import com.allenarcher.door_codes_manager.mqtt.resubscribingCallback
+import com.allenarcher.door_codes_manager.notifications.Ntfy
 import com.allenarcher.door_codes_manager.state.StateManager
 import jakarta.annotation.PostConstruct
 import org.apache.logging.log4j.LogManager
@@ -22,6 +23,7 @@ class AutomatedDoorCodesManager(
     private val stateManager: StateManager,
     private val deviceRepository: DeviceRepository,
     private val doorCodeRepository: DoorCodeRepository,
+    private val ntfy: Ntfy,
     @Value($$"${automation.mqtt.address}") private val address: String,
     @Value($$"${automation.mqtt.port:1883}") private val port: String,
     @Value($$"${automation.mqtt.topic:}") private val topic: String,
@@ -52,6 +54,7 @@ class AutomatedDoorCodesManager(
                 }
                 automateDoorCodes(doorCodesToAutomateList)
             } catch (e: Exception) {
+                ntfy.sendNotification("Automated door codes error", "Error handling message on $topic", "4", "rotating_light")
                 println("Failed to handle message on $topic: $e")
             }
         }
@@ -75,11 +78,14 @@ class AutomatedDoorCodesManager(
                 }
                 if (availableSlots.isEmpty()) {
                     logger.error("No available automated slots left for $deviceName.")
+                    ntfy.sendNotification("Automated door codes error", "No available automated slots left for $deviceName", "4", "rotating_light")
                     continue@loop
                 }
                 val slot = availableSlots.removeFirst()
                 val doorCode = DoorCode(null, deviceRow, slot, code!!, it.description, it.startDate, it.expirationDate)
-                stateManager.addDoorCode(doorCode)
+                if (!stateManager.addDoorCode(doorCode)) {
+                    ntfy.sendNotification("Automated door codes error", "Error setting code for ${it.description} on $deviceName", "4", "rotating_light")
+                }
             }
         }
     }

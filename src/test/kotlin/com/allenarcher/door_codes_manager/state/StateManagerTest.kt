@@ -4,6 +4,7 @@ import com.allenarcher.door_codes_manager.database.Device
 import com.allenarcher.door_codes_manager.database.DeviceRepository
 import com.allenarcher.door_codes_manager.database.DoorCode
 import com.allenarcher.door_codes_manager.database.DoorCodeRepository
+import com.allenarcher.door_codes_manager.notifications.Ntfy
 import com.allenarcher.door_codes_manager.z2m.Z2MDeviceManager
 import com.allenarcher.door_codes_manager.z2m.Z2MResponse
 import com.allenarcher.door_codes_manager.z2m.Z2MUser
@@ -28,13 +29,14 @@ class StateManagerTest {
     private val z2MDeviceManager: Z2MDeviceManager = mock()
     private val doorCodeRepository: DoorCodeRepository = mock()
     private val deviceRepository: DeviceRepository = mock()
+    private val ntfy: Ntfy = mock()
     private lateinit var stateManager: StateManager
 
     private val device = Device(1, "front-door", "Front Door", 1, 5, 3)
 
     @BeforeEach
     fun setUp() {
-        stateManager = StateManager(z2MDeviceManager, doorCodeRepository, deviceRepository)
+        stateManager = StateManager(z2MDeviceManager, doorCodeRepository, deviceRepository, ntfy)
     }
 
     @Test

@@ -33,3 +33,10 @@ spring:
             client-secret: change-me
             scope: openid,groups,profile
 code-start-and-expiration-check-timer: 5m
+ntfy:
+  enabled: true
+  url: https://your-ntfy-url.com
+  user: someuser
+  password: somepassword
+  token: TOKEN
+  topic: doorcodes
