@@ -20,6 +20,8 @@ COPY --from=extractor /app/extracted/snapshot-dependencies/ ./
 ENV DB_PATH=/data/door_codes_manager.db
 ENV CONFIG_PATH=/config/config.yaml
 ENV LOG_PATH=/logs/door-codes-manager.log
+RUN apt-get update && apt-get install -y --no-install-recommends sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /data /config /logs && chown -R ubuntu:ubuntu /app /data /config /logs
 USER ubuntu
 VOLUME /data

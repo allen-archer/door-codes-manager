@@ -118,6 +118,29 @@ your runtime of choice) for `docker` if needed.
 `scripts/build_image.sh` and `scripts/run_container.sh` show equivalent
 build/run commands for local development.
 
+### Backing up the database
+
+The app has no exposed API, so backups are taken by talking to the
+container directly. The image includes the `sqlite3` CLI for this.
+
+From the host, using `scripts/backup.sh <container-name-or-id>`:
+
+```sh
+scripts/backup.sh door-codes-manager
+```
+
+This copies a consistent snapshot out to a timestamped `.db` file in the
+current directory (pass a second argument to name it yourself).
+
+Or attach to the container directly:
+
+```sh
+docker exec -it door-codes-manager sqlite3 /data/door_codes_manager.db ".backup '/data/backup.db'"
+```
+
+`.backup` (rather than plain `cp`) copies the database safely while the app
+is writing to it. `docker cp` the resulting file out of `/data` afterward.
+
 ## Running locally
 
 ```sh
